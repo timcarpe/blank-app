@@ -70,7 +70,7 @@ def calculate_score(points_deducted, base_multiplier, time_seconds):
     return round(base_score * base_multiplier * time_multiplier)
 
 def main():
-    st.title("Score Leaderboard using Neon Database")
+    st.title("Vex Tryouts Leaderboard")
     init_db()
     
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
