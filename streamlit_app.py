@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Connect to Neon database
-conn = st.experimental_connection("neon", type="sql")
+conn = st.connection("neon", type="sql")
 
 def init_db():
     create_table_query = """
