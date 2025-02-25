@@ -13,7 +13,7 @@ def init_db():
         points_deducted INTEGER,
         base_multiplier INTEGER,
         time_seconds INTEGER,
-        total_score REAL
+        total_score INTEGER
     );
     """)
     with conn.session as session:
@@ -67,15 +67,19 @@ def delete_record(record_id):
 def calculate_score(points_deducted, base_multiplier, time_seconds):
     base_score = max(100 - points_deducted, 0)
     time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, time_seconds - 6)))
-    return base_score * base_multiplier * time_multiplier
+    return int(base_score * base_multiplier * time_multiplier)
 
 def main():
     st.title("Score Leaderboard using Neon Database")
     init_db()
     rerun_needed = False
     
+    leaderboard = get_leaderboard()
+    existing_names = leaderboard["name"].tolist() if not leaderboard.empty else []
+    
     with st.form("score_form"):
-        name = st.text_input("Enter Name")
+        name_option = st.selectbox("Select Existing Person or Add New", ["New Person"] + existing_names)
+        name = st.text_input("Enter Name") if name_option == "New Person" else name_option
         points_deducted = st.number_input("Points Deducted (0-100)", min_value=0, max_value=100, value=0)
         base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
         time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
@@ -84,11 +88,10 @@ def main():
         if submitted and name:
             total_score = calculate_score(points_deducted, base_multiplier, time_seconds)
             add_record(name, points_deducted, base_multiplier, time_seconds, total_score)
-            st.success(f"Recorded score {total_score:.2f} for {name}")
+            st.success(f"Recorded score {total_score} for {name}")
             rerun_needed = True
     
     st.header("Leaderboard")
-    leaderboard = get_leaderboard()
     if not leaderboard.empty:
         st.dataframe(leaderboard)
     
