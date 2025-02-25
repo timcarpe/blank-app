@@ -5,13 +5,16 @@ import pandas as pd
 DATA_FILE = "data.json"
 
 def load_data():
-    try:
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+    if "data" not in st.session_state:
+        try:
+            with open(DATA_FILE, "r") as f:
+                st.session_state["data"] = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            st.session_state["data"] = {}
+    return st.session_state["data"]
 
 def save_data(data):
+    st.session_state["data"] = data
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
@@ -25,7 +28,7 @@ def get_leaderboard(data):
     leaderboard = []
     for name, records in data.items():
         if records:
-            highest_score = max(record["score"] for record in records)
+            highest_score = max(record["Score"] for record in records)
             leaderboard.append({
                 "Name": name,
                 "Highest Score": highest_score
@@ -43,7 +46,7 @@ def main():
         if selected_name == "New person":
             selected_name = st.text_input("Enter new name")
         
-        points_deducted = st.number_input("Build Points(0-100)", min_value=0, max_value=100, value=0)
+        points_deducted = st.number_input("Build Points (0-100)", min_value=0, max_value=100, value=0)
         base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
         time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
         submitted = st.form_submit_button("Submit")
@@ -51,7 +54,7 @@ def main():
         if submitted and selected_name:
             total_score, time_multiplier = calculate_score(points_deducted, base_multiplier, time_seconds)
             data.setdefault(selected_name, []).append({
-                "Points Deducted": points_deducted,
+                "Build Points": points_deducted,
                 "Base Multiplier": base_multiplier,
                 "Time (seconds)": time_seconds,
                 "Time Multiplier": time_multiplier,
