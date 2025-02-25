@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import pandas as pd
 
 DATA_FILE = "data.json"
 
@@ -14,14 +15,22 @@ def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-def calculate_score(field1, field2, field3):
-    base_score = max(100 - field1, 0)
-    multiplier = field2
-    time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, field3 - 6)))
-    return base_score * multiplier * time_multiplier, time_multiplier
+def calculate_score(points_deducted, base_multiplier, time_seconds):
+    base_score = max(100 - points_deducted, 0)
+    time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, time_seconds - 6)))
+    total_score = base_score * base_multiplier * time_multiplier
+    return total_score, time_multiplier
 
 def get_leaderboard(data):
-    return sorted(((name, max((entry["score"] for entry in scores), default=0)) for name, scores in data.items()), key=lambda x: x[1], reverse=True)
+    leaderboard = []
+    for name, records in data.items():
+        if records:
+            highest_score = max(record["score"] for record in records)
+            leaderboard.append({
+                "Name": name,
+                "Highest Score": highest_score
+            })
+    return sorted(leaderboard, key=lambda x: x["Highest Score"], reverse=True)
 
 def main():
     st.title("Score Leaderboard")
@@ -34,26 +43,31 @@ def main():
         if selected_name == "New person":
             selected_name = st.text_input("Enter new name")
         
-        field1 = st.number_input("Field 1 (0-100)", min_value=0, max_value=100, value=0)
-        field2 = st.selectbox("Field 2 Multiplier", [0, 1, 2])
-        field3 = st.selectbox("Field 3 Time (seconds)", list(range(1, 13)))
+        points_deducted = st.number_input("Points Deducted (0-100)", min_value=0, max_value=100, value=0)
+        base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
+        time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
         submitted = st.form_submit_button("Submit")
 
         if submitted and selected_name:
-            total_score, time_multiplier = calculate_score(field1, field2, field3)
-            data.setdefault(selected_name, []).append({"field1": field1, "field2": field2, "field3": field3, "time_multiplier": time_multiplier, "score": total_score})
+            total_score, time_multiplier = calculate_score(points_deducted, base_multiplier, time_seconds)
+            data.setdefault(selected_name, []).append({
+                "Points Deducted": points_deducted,
+                "Base Multiplier": base_multiplier,
+                "Time (seconds)": time_seconds,
+                "Time Multiplier": time_multiplier,
+                "Score": total_score
+            })
             save_data(data)
             st.success(f"Recorded score {total_score:.2f} for {selected_name}")
             st.rerun()
 
-    # Leaderboard
+    # Leaderboard in table format
     st.header("Leaderboard")
     leaderboard = get_leaderboard(data)
-    for name, high_score in leaderboard:
-        if st.button(name):
-            st.session_state["selected_person"] = name
-            st.rerun()
-        st.write(f"{name}: {high_score:.2f}")
+    df_leaderboard = pd.DataFrame(leaderboard)
+    if not df_leaderboard.empty:
+        df_leaderboard["Name"] = df_leaderboard["Name"].apply(lambda name: f"[**{name}**](#{name.replace(' ', '-')})")
+        st.markdown(df_leaderboard.to_markdown(index=False), unsafe_allow_html=True)
     
     # Delete a person
     if st.button("Delete a Person"):
@@ -64,23 +78,23 @@ def main():
             st.success(f"Deleted {person_to_delete}")
             st.rerun()
 
-    # Detailed view
-    if "selected_person" in st.session_state:
-        selected_person = st.session_state["selected_person"]
-        st.header(f"{selected_person}'s Scores")
-        
-        records = data[selected_person]
-        for i, record in enumerate(records):
-            st.write(f"Field1: {record['field1']}, Field2: {record['field2']}, Field3: {record['field3']}, Time Multiplier: {record['time_multiplier']:.2f}, Score: {record['score']:.2f}")
-            if st.button(f"Delete Record {i}"):
-                records.pop(i)
+    # Detailed view when clicking on a name
+    for name in data.keys():
+        if f"#{name.replace(' ', '-')}" in st.query_params:
+            st.header(f"{name}'s Scores")
+            records = data[name]
+            df_records = pd.DataFrame(records)
+            if not df_records.empty:
+                st.dataframe(df_records)
+            
+            # Delete record functionality
+            record_to_delete = st.selectbox("Select a record to delete", df_records.index.tolist())
+            if st.button("Delete Selected Record"):
+                data[name].pop(record_to_delete)
                 save_data(data)
                 st.success("Record deleted")
                 st.rerun()
-        
-        if st.button("Back to Leaderboard"):
-            del st.session_state["selected_person"]
-            st.rerun()
+            break
 
 if __name__ == "__main__":
     main()
