@@ -72,6 +72,7 @@ def calculate_score(points_deducted, base_multiplier, time_seconds):
 def main():
     st.title("Score Leaderboard using Neon Database")
     init_db()
+    rerun_needed = False
     
     with st.form("score_form"):
         name = st.text_input("Enter Name")
@@ -84,7 +85,7 @@ def main():
             total_score = calculate_score(points_deducted, base_multiplier, time_seconds)
             add_record(name, points_deducted, base_multiplier, time_seconds, total_score)
             st.success(f"Recorded score {total_score:.2f} for {name}")
-            st.experimental_rerun()
+            rerun_needed = True
     
     st.header("Leaderboard")
     leaderboard = get_leaderboard()
@@ -102,13 +103,16 @@ def main():
                 if st.button("Delete Selected Record"):
                     delete_record(record_to_delete)
                     st.success("Record deleted")
-                    st.experimental_rerun()
+                    rerun_needed = True
         
         person_to_delete = st.selectbox("Delete person", leaderboard["name"].tolist())
         if st.button("Delete Selected Person"):
             delete_person(person_to_delete)
             st.success(f"Deleted {person_to_delete}")
-            st.experimental_rerun()
+            rerun_needed = True
+    
+    if rerun_needed:
+        st.rerun()
 
 if __name__ == "__main__":
     main()
