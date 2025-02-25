@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Connect to Neon database
-conn = st.connection("neon", type="sql")
+conn = st.experimental_connection("neon", type="sql")
 
 def init_db():
     create_table_query = """
@@ -15,14 +15,18 @@ def init_db():
         total_score REAL
     );
     """
-    conn.execute(create_table_query)
+    with conn.session as session:
+        session.execute(create_table_query)
+        session.commit()
 
 def add_record(name, points_deducted, base_multiplier, time_seconds, total_score):
     insert_query = """
     INSERT INTO scores (name, points_deducted, base_multiplier, time_seconds, total_score)
     VALUES (%s, %s, %s, %s, %s);
     """
-    conn.execute(insert_query, (name, points_deducted, base_multiplier, time_seconds, total_score))
+    with conn.session as session:
+        session.execute(insert_query, (name, points_deducted, base_multiplier, time_seconds, total_score))
+        session.commit()
 
 def get_leaderboard():
     query = """
@@ -31,21 +35,23 @@ def get_leaderboard():
     GROUP BY name
     ORDER BY highest_score DESC;
     """
-    df = conn.query(query)
-    return df
+    return conn.query(query)
 
 def get_person_history(name):
     query = "SELECT * FROM scores WHERE name = %s ORDER BY id;"
-    df = conn.query(query, (name,))
-    return df
+    return conn.query(query, (name,))
 
 def delete_person(name):
     query = "DELETE FROM scores WHERE name = %s;"
-    conn.execute(query, (name,))
+    with conn.session as session:
+        session.execute(query, (name,))
+        session.commit()
 
 def delete_record(record_id):
     query = "DELETE FROM scores WHERE id = %s;"
-    conn.execute(query, (record_id,))
+    with conn.session as session:
+        session.execute(query, (record_id,))
+        session.commit()
 
 def calculate_score(points_deducted, base_multiplier, time_seconds):
     base_score = max(100 - points_deducted, 0)
