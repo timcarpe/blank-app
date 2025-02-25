@@ -18,10 +18,10 @@ def calculate_score(field1, field2, field3):
     base_score = max(100 - field1, 0)
     multiplier = field2
     time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, field3 - 6)))
-    return base_score * multiplier * time_multiplier
+    return base_score * multiplier * time_multiplier, time_multiplier
 
 def get_leaderboard(data):
-    return sorted(((name, max(scores, default=0)) for name, scores in data.items()), key=lambda x: x[1], reverse=True)
+    return sorted(((name, max((entry["score"] for entry in scores), default=0)) for name, scores in data.items()), key=lambda x: x[1], reverse=True)
 
 def main():
     st.title("Score Leaderboard")
@@ -40,8 +40,8 @@ def main():
         submitted = st.form_submit_button("Submit")
 
         if submitted and selected_name:
-            total_score = calculate_score(field1, field2, field3)
-            data.setdefault(selected_name, []).append(total_score)
+            total_score, time_multiplier = calculate_score(field1, field2, field3)
+            data.setdefault(selected_name, []).append({"field1": field1, "field2": field2, "field3": field3, "time_multiplier": time_multiplier, "score": total_score})
             save_data(data)
             st.success(f"Recorded score {total_score:.2f} for {selected_name}")
             st.rerun()
@@ -54,12 +54,30 @@ def main():
             st.session_state["selected_person"] = name
             st.rerun()
         st.write(f"{name}: {high_score:.2f}")
+    
+    # Delete a person
+    if st.button("Delete a Person"):
+        person_to_delete = st.selectbox("Select a person to delete", names)
+        if st.button(f"Confirm Delete {person_to_delete}"):
+            del data[person_to_delete]
+            save_data(data)
+            st.success(f"Deleted {person_to_delete}")
+            st.rerun()
 
     # Detailed view
     if "selected_person" in st.session_state:
         selected_person = st.session_state["selected_person"]
         st.header(f"{selected_person}'s Scores")
-        st.write(data[selected_person])
+        
+        records = data[selected_person]
+        for i, record in enumerate(records):
+            st.write(f"Field1: {record['field1']}, Field2: {record['field2']}, Field3: {record['field3']}, Time Multiplier: {record['time_multiplier']:.2f}, Score: {record['score']:.2f}")
+            if st.button(f"Delete Record {i}"):
+                records.pop(i)
+                save_data(data)
+                st.success("Record deleted")
+                st.rerun()
+        
         if st.button("Back to Leaderboard"):
             del st.session_state["selected_person"]
             st.rerun()
