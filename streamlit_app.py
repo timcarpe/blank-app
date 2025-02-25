@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
+from sqlalchemy.sql import text
 
 # Connect to Neon database
 conn = st.connection("neon", type="sql")
 
 def init_db():
-    create_table_query = """
+    create_table_query = text("""
     CREATE TABLE IF NOT EXISTS scores (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
@@ -14,43 +15,49 @@ def init_db():
         time_seconds INTEGER,
         total_score REAL
     );
-    """
+    """)
     with conn.session as session:
         session.execute(create_table_query)
         session.commit()
 
 def add_record(name, points_deducted, base_multiplier, time_seconds, total_score):
-    insert_query = """
+    insert_query = text("""
     INSERT INTO scores (name, points_deducted, base_multiplier, time_seconds, total_score)
-    VALUES (%s, %s, %s, %s, %s);
-    """
+    VALUES (:name, :points_deducted, :base_multiplier, :time_seconds, :total_score);
+    """)
     with conn.session as session:
-        session.execute(insert_query, (name, points_deducted, base_multiplier, time_seconds, total_score))
+        session.execute(insert_query, {
+            "name": name,
+            "points_deducted": points_deducted,
+            "base_multiplier": base_multiplier,
+            "time_seconds": time_seconds,
+            "total_score": total_score
+        })
         session.commit()
 
 def get_leaderboard():
-    query = """
+    query = text("""
     SELECT name, MAX(total_score) AS highest_score
     FROM scores
     GROUP BY name
     ORDER BY highest_score DESC;
-    """
+    """)
     return conn.query(query)
 
 def get_person_history(name):
-    query = "SELECT * FROM scores WHERE name = %s ORDER BY id;"
-    return conn.query(query, (name,))
+    query = text("SELECT * FROM scores WHERE name = :name ORDER BY id;")
+    return conn.query(query, {"name": name})
 
 def delete_person(name):
-    query = "DELETE FROM scores WHERE name = %s;"
+    query = text("DELETE FROM scores WHERE name = :name;")
     with conn.session as session:
-        session.execute(query, (name,))
+        session.execute(query, {"name": name})
         session.commit()
 
 def delete_record(record_id):
-    query = "DELETE FROM scores WHERE id = %s;"
+    query = text("DELETE FROM scores WHERE id = :record_id;")
     with conn.session as session:
-        session.execute(query, (record_id,))
+        session.execute(query, {"record_id": record_id})
         session.commit()
 
 def calculate_score(points_deducted, base_multiplier, time_seconds):
