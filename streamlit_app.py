@@ -96,7 +96,7 @@ def main():
         with st.form("score_form"):
             name_option = st.selectbox("Select Existing Person or Add New", ["New Person"] + existing_names)
             name = st.text_input("Enter Name") if name_option == "New Person" else name_option
-            points_deducted = st.number_input("Points Deducted (0-100)", min_value=0, max_value=100, value=0)
+            points_deducted = st.number_input("Number of Pieces (0-100)", min_value=0, max_value=100, value=0)
             base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
             time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
             submitted = st.form_submit_button("Submit")
