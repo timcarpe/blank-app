@@ -42,11 +42,15 @@ def get_leaderboard():
     GROUP BY name
     ORDER BY highest_score DESC;
     """)
-    return conn.query(query)
+    with conn.session as session:
+        result = session.execute(query).fetchall()
+        return pd.DataFrame(result, columns=["name", "highest_score"])
 
 def get_person_history(name):
     query = text("SELECT * FROM scores WHERE name = :name ORDER BY id;")
-    return conn.query(query, {"name": name})
+    with conn.session as session:
+        result = session.execute(query, {"name": name}).fetchall()
+        return pd.DataFrame(result, columns=["id", "name", "points_deducted", "base_multiplier", "time_seconds", "total_score"])
 
 def delete_person(name):
     query = text("DELETE FROM scores WHERE name = :name;")
