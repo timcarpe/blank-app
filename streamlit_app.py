@@ -70,8 +70,8 @@ def calculate_score(points_deducted, base_multiplier, time_seconds):
     return round(base_score * base_multiplier * time_multiplier)
 
 def main():
+    st.image("Vexv5-logo.png")  
     st.title("VEX Tryouts Leaderboard")
-    st.image("Vexv5-logo.png")
   
     init_db()
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
