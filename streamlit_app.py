@@ -11,6 +11,7 @@ def init_db():
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         points_deducted INTEGER,
+        inverse_points INTEGER,
         base_multiplier INTEGER,
         time_seconds INTEGER,
         total_score INTEGER
@@ -20,15 +21,16 @@ def init_db():
         session.execute(create_table_query)
         session.commit()
 
-def add_record(name, points_deducted, base_multiplier, time_seconds, total_score):
+def add_record(name, points_deducted, inverse_points, base_multiplier, time_seconds, total_score):
     insert_query = text("""
-    INSERT INTO scores (name, points_deducted, base_multiplier, time_seconds, total_score)
-    VALUES (:name, :points_deducted, :base_multiplier, :time_seconds, :total_score);
+    INSERT INTO scores (name, points_deducted, inverse_points, base_multiplier, time_seconds, total_score)
+    VALUES (:name, :points_deducted, :inverse_points, :base_multiplier, :time_seconds, :total_score);
     """)
     with conn.session as session:
         session.execute(insert_query, {
             "name": name,
             "points_deducted": points_deducted,
+            "inverse_points": inverse_points,
             "base_multiplier": base_multiplier,
             "time_seconds": time_seconds,
             "total_score": total_score
@@ -50,7 +52,7 @@ def get_person_history(name):
     query = text("SELECT * FROM scores WHERE name = :name ORDER BY id;")
     with conn.session as session:
         result = session.execute(query, {"name": name}).fetchall()
-        return pd.DataFrame(result, columns=["id", "name", "points_deducted", "base_multiplier", "time_seconds", "total_score"])
+        return pd.DataFrame(result, columns=["id", "name", "points_deducted", "inverse_points", "base_multiplier", "time_seconds", "total_score"])
 
 def delete_person(name):
     query = text("DELETE FROM scores WHERE name = :name;")
@@ -67,7 +69,7 @@ def delete_record(record_id):
 def calculate_score(points_deducted, base_multiplier, time_seconds):
     base_score = max(100 - points_deducted, 0)
     time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, time_seconds - 6)))
-    return round(base_score * base_multiplier * time_multiplier)
+    return round(base_score * base_multiplier * time_multiplier), base_score
 
 def main():
     st.image("Vexv5-logo.png")  
@@ -123,8 +125,8 @@ def main():
             submitted = st.form_submit_button("Submit")
             
             if submitted and name:
-                total_score = calculate_score(points_deducted, base_multiplier, time_seconds)
-                add_record(name, points_deducted, base_multiplier, time_seconds, total_score)
+                total_score, inverse_points = calculate_score(points_deducted, base_multiplier, time_seconds)
+                add_record(name, points_deducted, inverse_points, base_multiplier, time_seconds, total_score)
                 st.success(f"Recorded score {total_score} for {name}")
                 rerun_needed = True
             
