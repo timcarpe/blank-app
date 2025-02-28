@@ -117,7 +117,7 @@ def main():
                         delete_record(record_to_delete)
                         st.success("Record deleted")
                         rerun_needed = True
-                      
+        
         with st.form("score_form"):
             name_option = st.selectbox("Select Existing Person or Add New", ["New Person"] + existing_names)
             name = st.text_input("Enter Name") if name_option == "New Person" else name_option
@@ -132,11 +132,14 @@ def main():
                 st.success(f"Recorded score {total_score} for {name}")
                 rerun_needed = True
             
+        if not leaderboard.empty:
             person_to_delete = st.selectbox("Delete person", leaderboard["name"].tolist())
             if st.button("Delete Selected Person"):
                 delete_person(person_to_delete)
                 st.success(f"Deleted {person_to_delete}")
                 rerun_needed = True
+        else:
+            st.warning("No persons available to delete.")
         
         if rerun_needed:
             st.rerun()
