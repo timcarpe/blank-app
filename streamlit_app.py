@@ -81,9 +81,13 @@ def main():
         if not leaderboard.empty:
             st.dataframe(leaderboard)
 
-        st.header("Player Records")
+        st.header("Person History")
         if not leaderboard.empty:
             selected_person = st.selectbox("View records for", leaderboard["name"].tolist())
+            if selected_person:
+                history = get_person_history(selected_person)
+                if not history.empty:
+                    st.dataframe(history)
     
     elif menu == "Admin":
         admin_password = st.secrets["admin"]["password"]
