@@ -71,8 +71,9 @@ def calculate_score(points_deducted, base_multiplier, time_seconds):
 
 def main():
     st.title("VEX Tryouts Leaderboard")
+    st.image("Vexv5-logo.png")
+  
     init_db()
-    
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
     
     if menu == "Leaderboard":
