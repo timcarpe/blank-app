@@ -70,8 +70,7 @@ def calculate_score(points_deducted, base_multiplier, time_seconds):
     return round(base_score * base_multiplier * time_multiplier)
 
 def main():
-    st.image("Vexv5-logo.png")
-    st.title("Vex V5 Tryouts")
+    st.title("VEX Tryouts Leaderboard")
     init_db()
     
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
@@ -81,6 +80,10 @@ def main():
         st.header("Leaderboard")
         if not leaderboard.empty:
             st.dataframe(leaderboard)
+
+        st.header("Player Records")
+        if not leaderboard.empty:
+            selected_person = st.selectbox("View records for", leaderboard["name"].tolist())
     
     elif menu == "Admin":
         admin_password = st.secrets["admin"]["password"]
@@ -92,21 +95,7 @@ def main():
         rerun_needed = False
         leaderboard = get_leaderboard()
         existing_names = leaderboard["name"].tolist() if not leaderboard.empty else []
-        
-        with st.form("score_form"):
-            name_option = st.selectbox("Select Existing Person or Add New", ["New Person"] + existing_names)
-            name = st.text_input("Enter Name") if name_option == "New Person" else name_option
-            points_deducted = st.number_input("Number of Pieces (0-100)", min_value=0, max_value=100, value=0)
-            base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
-            time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
-            submitted = st.form_submit_button("Submit")
-            
-            if submitted and name:
-                total_score = calculate_score(points_deducted, base_multiplier, time_seconds)
-                add_record(name, points_deducted, base_multiplier, time_seconds, total_score)
-                st.success(f"Recorded score {total_score} for {name}")
-                rerun_needed = True
-        
+
         st.header("Person History")
         if not leaderboard.empty:
             selected_person = st.selectbox("View records for", leaderboard["name"].tolist())
@@ -119,6 +108,20 @@ def main():
                         delete_record(record_to_delete)
                         st.success("Record deleted")
                         rerun_needed = True
+                      
+        with st.form("score_form"):
+            name_option = st.selectbox("Select Existing Person or Add New", ["New Person"] + existing_names)
+            name = st.text_input("Enter Name") if name_option == "New Person" else name_option
+            points_deducted = st.number_input("Piece Count (0-100)", min_value=0, max_value=100, value=0)
+            base_multiplier = st.selectbox("Base Multiplier", [0, 1, 2])
+            time_seconds = st.selectbox("Time (seconds)", list(range(1, 13)))
+            submitted = st.form_submit_button("Submit")
+            
+            if submitted and name:
+                total_score = calculate_score(points_deducted, base_multiplier, time_seconds)
+                add_record(name, points_deducted, base_multiplier, time_seconds, total_score)
+                st.success(f"Recorded score {total_score} for {name}")
+                rerun_needed = True
             
             person_to_delete = st.selectbox("Delete person", leaderboard["name"].tolist())
             if st.button("Delete Selected Person"):
