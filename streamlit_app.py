@@ -87,7 +87,7 @@ def main():
         if not leaderboard.empty:
             st.dataframe(leaderboard)
             
-        st.header("Information")  
+        st.header("Information and Rules")  
         st.markdown(
         '<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRx7hwa1rIHXBFuJgfXJTxihIVYpwfGeiof1ElNOVTyV0GJbbiHId00Bag8HjSHbA/embed?start=true&loop=true&delayms=3000" width="800" height="500"></iframe>',
         unsafe_allow_html=True
