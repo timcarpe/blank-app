@@ -82,9 +82,6 @@ def main():
     
     if menu == "Information and Leaderboard":
         leaderboard = get_leaderboard()
-        st.header("Rules and Information")
-        
-
 
         st.header("Leaderboard")
         if not leaderboard.empty:
