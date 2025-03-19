@@ -80,11 +80,11 @@ def main():
     init_db()
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
     
-    if menu == "Leaderboard":
+    if menu == "Information and Leaderboard":
         leaderboard = get_leaderboard()
         st.header("Rules and Information")
         st.markdown(
-        '<iframe src="https://docs.google.com/presentation/d/e/1dZ8emqPschHFmKPjTlSzf9dmMIFiXMt6/embed?start=false&loop=false&delayms=3000" width="800" height="500"></iframe>',
+        '<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRx7hwa1rIHXBFuJgfXJTxihIVYpwfGeiof1ElNOVTyV0GJbbiHId00Bag8HjSHbA/embed?start=true&loop=true&delayms=3000" frameborder="0" width="1280" height="749" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>',
         unsafe_allow_html=True
         )
         st.header("Leaderboard")
