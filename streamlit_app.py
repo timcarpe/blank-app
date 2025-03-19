@@ -83,10 +83,12 @@ def main():
     if menu == "Information and Leaderboard":
         leaderboard = get_leaderboard()
         st.header("Rules and Information")
+        
         st.markdown(
-        '<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRx7hwa1rIHXBFuJgfXJTxihIVYpwfGeiof1ElNOVTyV0GJbbiHId00Bag8HjSHbA/embed?start=true&loop=true&delayms=3000" frameborder="0" width="1280" height="749" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>',
-        unsafe_allow_html=True
+            '<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRx7hwa1rIHXBFuJgfXJTxihIVYpwfGeiof1ElNOVTyV0GJbbiHId00Bag8HjSHbA/embed?start=true&loop=true&delayms=3000" height="500"></iframe>',
+            unsafe_allow_html=True
         )
+
         st.header("Leaderboard")
         if not leaderboard.empty:
             st.dataframe(leaderboard)
