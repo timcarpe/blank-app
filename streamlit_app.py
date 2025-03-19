@@ -80,9 +80,8 @@ def main():
     init_db()
     menu = st.sidebar.selectbox("Menu", ["Leaderboard", "Admin"])
     
-    if menu == "Information and Leaderboard":
+    if menu == "Leaderboard":
         leaderboard = get_leaderboard()
-
         st.header("Leaderboard")
         if not leaderboard.empty:
             st.dataframe(leaderboard)
