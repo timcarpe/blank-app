@@ -70,7 +70,7 @@ def delete_record(record_id):
 
 def calculate_score(points_deducted, base_multiplier, time_seconds):
     base_score = max(100 - points_deducted, 0)
-    time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(0, time_seconds - 6)))
+    time_multiplier = max(0.5, min(1.5, 1.5 - 0.1 * max(1, time_seconds - 5)))
     return round(base_score * base_multiplier * time_multiplier), base_score
 
 def main():
